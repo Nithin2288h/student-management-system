@@ -1,0 +1,79 @@
+services:
+  # ============================================================================
+  # MySQL Database Service
+  # ============================================================================
+  mysql:
+    image: mysql:8.0
+    container_name: sms-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-student_db}
+      MYSQL_USER: ${MYSQL_USER:-student_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-student_pass}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_secure_password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - sms-network
+    # Port 3306 is NOT published to the host to protect the database from public exposure
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$${MYSQL_ROOT_PASSWORD} || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ============================================================================
+  # Spring Boot Backend API Service
+  # ============================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: sms-backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: ${DB_NAME:-student_db}
+      DB_USERNAME: ${DB_USERNAME:-student_user}
+      DB_PASSWORD: ${DB_PASSWORD:-student_pass}
+      CORS_ALLOWED_ORIGINS: "*"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - sms-network
+    # Port 8080 remains internal within sms-network; traffic is securely proxied by frontend Nginx
+
+  # ============================================================================
+  # React + Nginx Reverse Proxy Frontend Service
+  # ============================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sms-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - sms-network
+
+# ==============================================================================
+# Persistent Named Volumes
+# ==============================================================================
+volumes:
+  mysql_data:
+    name: sms_mysql_data
+    driver: local
+
+# ==============================================================================
+# Isolated Internal Bridge Network
+# ==============================================================================
+networks:
+  sms-network:
+    name: sms_app_network
+    driver: bridge

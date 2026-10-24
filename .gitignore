@@ -1,0 +1,43 @@
+# Environment and secrets (CRITICAL: Never commit credentials)
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# Node.js and Frontend dependencies & build artifacts
+node_modules/
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+backups/
+
+# Java and Backend Maven build artifacts
+backend/target/
+backend/.mvn/
+backend/*.jar
+backend/*.war
+
+# IDE and Editor artifacts
+.idea/
+.vscode/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+.settings/
+
+# Operating System temporary files
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+*.log
+
+# Docker local overrides and volumes
+docker-compose.override.yml
