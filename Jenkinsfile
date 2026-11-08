@@ -101,6 +101,45 @@ pipeline {
                 '''
             }
         }
+
+        stage('Publish Docker Hub Images') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'DOCKERHUB_USERNAME',
+                    passwordVariable: 'DOCKERHUB_TOKEN'
+                )]) {
+                    sh '''
+                        set -eu
+
+                        if [ "$DOCKERHUB_USERNAME" != "bunny2288h" ]; then
+                            echo "ERROR: Unexpected Docker Hub username."
+                            exit 1
+                        fi
+
+                        BACKEND_REPO="bunny2288h/student-management-system-backend"
+                        FRONTEND_REPO="bunny2288h/student-management-system-frontend"
+
+                        BACKEND_TAG="${BACKEND_REPO}:${SHORT_SHA}"
+                        FRONTEND_TAG="${FRONTEND_REPO}:${SHORT_SHA}"
+
+                        echo "$DOCKERHUB_TOKEN" | docker login \
+                          --username "$DOCKERHUB_USERNAME" \
+                          --password-stdin
+
+                        trap 'docker logout >/dev/null 2>&1 || true' EXIT
+
+                        docker tag "$BACKEND_IMAGE" "$BACKEND_TAG"
+                        docker tag "$FRONTEND_IMAGE" "$FRONTEND_TAG"
+
+                        docker push "$BACKEND_TAG"
+                        docker push "$FRONTEND_TAG"
+
+                        docker image rm "$BACKEND_TAG" "$FRONTEND_TAG" || true
+                    '''
+                }
+            }
+        }
     }
 
     post {
