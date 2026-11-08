@@ -1,0 +1,124 @@
+pipeline {
+    agent any
+
+    options {
+        disableConcurrentBuilds()
+        timeout(time: 45, unit: 'MINUTES')
+        timestamps()
+        skipDefaultCheckout(true)
+    }
+
+    environment {
+        TRIVY_CACHE = '/var/lib/jenkins/.cache/trivy'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+
+                script {
+                    env.SHORT_SHA = sh(
+                        script: 'git rev-parse --short=7 HEAD',
+                        returnStdout: true
+                    ).trim()
+
+                    env.BACKEND_IMAGE = "sms-backend:ci-${env.SHORT_SHA}"
+                    env.FRONTEND_IMAGE = "sms-frontend:ci-${env.SHORT_SHA}"
+                }
+            }
+        }
+
+        stage('Verify Docker Access') {
+            steps {
+                sh 'docker version && docker info >/dev/null'
+            }
+        }
+
+        stage('Backend Unit Tests') {
+            steps {
+                sh '''
+                    set -eu
+
+                    mkdir -p "$WORKSPACE/.m2"
+
+                    docker run --rm \
+                      -v "$WORKSPACE/backend:/workspace" \
+                      -v "$WORKSPACE/.m2:/root/.m2" \
+                      -w /workspace \
+                      maven:3.9.6-eclipse-temurin-17-alpine \
+                      mvn -B clean test
+                '''
+            }
+        }
+
+        stage('Frontend Build') {
+            steps {
+                sh '''
+                    set -eu
+
+                    docker run --rm \
+                      -v "$WORKSPACE/frontend:/workspace" \
+                      -w /workspace \
+                      node:20-alpine \
+                      sh -c 'npm ci && npm run build'
+                '''
+            }
+        }
+
+        stage('Build Docker Images') {
+            steps {
+                sh '''
+                    set -eu
+
+                    docker build -t "$BACKEND_IMAGE" ./backend
+                    docker build -t "$FRONTEND_IMAGE" ./frontend
+                '''
+            }
+        }
+
+        stage('Trivy Security Scan') {
+            steps {
+                sh '''
+                    set -eu
+
+                    mkdir -p "$TRIVY_CACHE"
+
+                    for IMAGE in "$BACKEND_IMAGE" "$FRONTEND_IMAGE"; do
+                        echo "Scanning $IMAGE"
+
+                        docker run --rm \
+                          -v /var/run/docker.sock:/var/run/docker.sock \
+                          -v "$TRIVY_CACHE:/root/.cache/trivy" \
+                          aquasec/trivy:0.76.2 \
+                          image \
+                          --cache-dir /root/.cache/trivy \
+                          --scanners vuln \
+                          --severity HIGH,CRITICAL \
+                          --exit-code 1 \
+                          "$IMAGE"
+                    done
+                '''
+            }
+        }
+    }
+
+    post {
+        always {
+            sh '''
+                docker image rm -f \
+                  "${BACKEND_IMAGE:-sms-backend:missing}" \
+                  "${FRONTEND_IMAGE:-sms-frontend:missing}" \
+                  2>/dev/null || true
+            '''
+        }
+
+        success {
+            echo 'SMS Spring Boot 4 migration CI completed successfully.'
+        }
+
+        failure {
+            echo 'CI failed. Review the failed stage logs.'
+        }
+    }
+}
