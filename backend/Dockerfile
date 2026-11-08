@@ -39,12 +39,6 @@ USER spring:spring
 # Expose backend internal port
 EXPOSE 8080
 
-# Environment variables with sensible defaults
-ENV DB_HOST=mysql \
-    DB_PORT=3306 \
-    DB_NAME=student_db \
-    DB_USERNAME=student_user \
-    DB_PASSWORD=student_pass
 
 # Container healthcheck using backend health REST endpoint
 HEALTHCHECK --interval=20s --timeout=5s --start-period=35s --retries=3 \

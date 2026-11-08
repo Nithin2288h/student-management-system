@@ -9,8 +9,8 @@ FROM node:20-alpine AS build
 WORKDIR /app
 
 # Copy dependency definitions and install
-COPY package.json ./
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci
 
 # Copy application source code
 COPY . .
@@ -19,7 +19,7 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Production Nginx Server
-FROM nginx:1.27-alpine
+FROM nginx:1.30.6-alpine3.24
 
 # Set working directory
 WORKDIR /usr/share/nginx/html
