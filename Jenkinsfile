@@ -140,6 +140,39 @@ pipeline {
                 }
             }
         }
+
+        stage('Deploy to Kubernetes Test') {
+            steps {
+                sh '''
+                    set -eu
+
+                    export KUBECONFIG=/var/lib/jenkins/.kube/config
+                    KUBECTL=/usr/local/bin/kubectl
+                    NAMESPACE="sms-boot4-test"
+
+                    BACKEND_IMAGE="bunny2288h/student-management-system-backend:${SHORT_SHA}"
+                    FRONTEND_IMAGE="bunny2288h/student-management-system-frontend:${SHORT_SHA}"
+
+                    echo "Deploying commit ${SHORT_SHA} to ${NAMESPACE}"
+
+                    "$KUBECTL" set image deployment/backend \
+                      backend="$BACKEND_IMAGE" -n "$NAMESPACE"
+
+                    "$KUBECTL" set image deployment/frontend \
+                      frontend="$FRONTEND_IMAGE" -n "$NAMESPACE"
+
+                    "$KUBECTL" rollout status deployment/backend \
+                      -n "$NAMESPACE" --timeout=180s
+
+                    "$KUBECTL" rollout status deployment/frontend \
+                      -n "$NAMESPACE" --timeout=180s
+
+                    echo "===== DEPLOYED IMAGES ====="
+                    "$KUBECTL" get deployments -n "$NAMESPACE" \
+                      -o custom-columns='NAME:.metadata.name,IMAGE:.spec.template.spec.containers[0].image'
+                '''
+            }
+        }
     }
 
     post {
