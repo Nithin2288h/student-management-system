@@ -550,3 +550,46 @@ To avoid unnecessary AWS cloud credit usage after your project demonstration:
    - Select `student-management-system-ec2`.
    - Click **Instance State > Terminate Instance**.
 3. Under **Network & Security > Key Pairs** and **Security Groups**, remove unused items.
+
+---
+
+## 17. Spring Boot 4 Migration — CI/CD Test Pipeline
+
+An isolated CI/CD pipeline validates the Spring Boot 4 migration without
+replacing the existing production Student Management System.
+
+### Pipeline stages
+
+1. Checkout the migration branch from GitHub.
+2. Verify Jenkins Docker access.
+3. Run backend Maven unit tests.
+4. Install frontend dependencies and build the React application.
+5. Build backend and frontend Docker images.
+6. Scan images using Trivy for HIGH and CRITICAL vulnerabilities.
+7. Publish versioned images to Docker Hub.
+8. Deploy the images to the isolated Kubernetes namespace `sms-boot4-test`.
+9. Verify Kubernetes rollout status.
+
+### Tools
+
+- Jenkins
+- GitHub
+- Java 17 and Maven
+- React and Vite
+- Docker and Docker Hub
+- Trivy
+- Kubernetes (K3s)
+
+### Docker Hub images
+
+- Backend: https://hub.docker.com/r/bunny2288h/student-management-system-backend
+- Frontend: https://hub.docker.com/r/bunny2288h/student-management-system-frontend
+
+### Isolation and safety
+
+The migration pipeline deploys only to the `sms-boot4-test` namespace.
+The existing `sms` namespace, Docker Compose deployment, and original
+MySQL data are kept separate and are not modified by this pipeline.
+
+The pipeline uses commit-based image tags so each build can be identified
+and traced to its Git revision.
