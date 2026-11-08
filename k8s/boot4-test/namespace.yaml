@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sms-boot4-test
+  labels:
+    app: student-management-system
+    environment: boot4-test
