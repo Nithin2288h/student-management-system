@@ -230,3 +230,6 @@ For your formal submission document or presentation slide deck, capture the foll
 ## 12. Conclusion
 
 The **Student Management System** successfully accomplishes all requirements outlined in the AWS DevOps credit completion course. By decoupling the frontend, backend, and persistence tiers into isolated Docker containers and managing them through Docker Compose and Nginx, the project demonstrates contemporary industry practices in full-stack cloud engineering. The solution guarantees deterministic deployments, robust data persistence, strict data validation, and fortified network security.
+
+
+-------
