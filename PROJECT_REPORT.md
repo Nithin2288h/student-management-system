@@ -226,7 +226,6 @@ For your formal submission document or presentation slide deck, capture the foll
 9. **Spring Boot Backend Logs (`docker compose logs backend`):** Terminal screenshot showing Spring Boot banner, Hibernate schema initialization, and REST endpoints.
 10. **AWS EC2 Console:** Screenshot from AWS Management Console showing the running EC2 instance and Security Group inbound rules.
 
----
 
 ## 12. Conclusion
 
