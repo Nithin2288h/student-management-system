@@ -141,3 +141,5 @@ The pipeline does not update the MySQL Deployment or modify the original Docker 
 The Jenkins pipeline automates backend testing, frontend compilation, container image creation, vulnerability scanning, image publishing and isolated Kubernetes deployment.
 
 Build #6 completed successfully, demonstrating the Spring Boot 4 migration test workflow without replacing the original application deployment.
+
+-----
