@@ -593,3 +593,6 @@ MySQL data are kept separate and are not modified by this pipeline.
 
 The pipeline uses commit-based image tags so each build can be identified
 and traced to its Git revision.
+
+
+finished
