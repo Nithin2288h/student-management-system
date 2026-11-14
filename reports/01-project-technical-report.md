@@ -98,7 +98,7 @@ Important project files and directories include:
 | `frontend/` | React frontend source |
 | `k8s/boot4-test/` | Kubernetes migration test manifests |
 | `reports/` | Supplementary technical reports |
-
+----------------------------------------------------
 ## 9. Conclusion
 
 The project demonstrates full-stack application development, containerization, cloud deployment and DevOps practices.
