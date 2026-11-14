@@ -1,3 +1,4 @@
+
 # ==============================================================================
 # Multi-Stage Dockerfile for React Frontend
 # Stage 1: Build React Production Bundle
@@ -20,6 +21,9 @@ RUN npm run build
 
 # Stage 2: Production Nginx Server
 FROM nginx:1.30.6-alpine3.24
+
+# Upgrade Alpine packages to receive security fixes
+RUN apk upgrade --no-cache
 
 # Set working directory
 WORKDIR /usr/share/nginx/html
